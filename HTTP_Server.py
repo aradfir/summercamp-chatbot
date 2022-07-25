@@ -2,7 +2,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
 from os import listdir,getcwd
 
-from os.path import isfile, join, isdir, dirname
+from os.path import isfile, join, isdir
 
 dirname = getcwd()
 
