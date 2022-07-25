@@ -18,7 +18,7 @@ def handler(conn, addr):
         print(f"New connection accepted from {addr}")
         client_datas[addr] = ""
         while True:
-            data = conn.recv()
+            data = conn.recv(99999999)
 
             if not data:
                 break
