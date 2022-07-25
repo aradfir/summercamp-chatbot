@@ -8,7 +8,7 @@ len=randint(1,20)
 l=[]
 for i in range(len):
     l.append(str(randint(-10000,10000)))
-str_data=" ".join(l).encode()
+str_data=" ".join(l).encode() + b" fin"
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.connect((HOST,PORT))
     s.sendall(str_data)

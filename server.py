@@ -1,8 +1,8 @@
 import socket
 import threading
-
+import importlib
 HOST = "127.0.0.1"
-PORT = 1036
+PORT = 1037
 client_datas = dict()
 
 
@@ -10,7 +10,17 @@ def data_calc(arg_str: str):
     # remove last item (fin)
     # cast all items to float
     # return sum
-    return sum(map(float, arg_str.split()[:-1]))
+    splited=arg_str.split()
+    try:
+        module=importlib.import_module(splited[0])
+        func = getattr(module, splited[1])
+        return func(map(float, splited[2:-1]))
+    except Exception as e:
+        print("No module found!")
+    return "Error in finding module/function"
+
+
+
 
 
 def handler(conn, addr):
