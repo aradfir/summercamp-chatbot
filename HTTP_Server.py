@@ -1,11 +1,10 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
-from os import listdir
+from os import listdir,getcwd
 
 from os.path import isfile, join, isdir, dirname
 
-dirname = dirname(__file__)
-
+dirname = getcwd()
 
 class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
