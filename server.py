@@ -1,53 +1,56 @@
 import socket
-import threading
 import importlib
 import concurrent.futures
 
 HOST = "127.0.0.1"
-PORT = 1041
+PORT = 1043
 MAX_WORKERS = 100
-client_datas = dict()
+MAX_BUFFER_SIZE = 9999999999999999999
+clients_data = dict()
 
 
 def data_calc(arg_str: str):
     # remove last item (fin)
     # cast all items to float
-    # return sum
-    splited = arg_str.split()
+    # find function to call from first two params
+    # calculate and return
+    arg_split = arg_str.split()
     try:
-        module = importlib.import_module(splited[0])
-        func = getattr(module, splited[1])
-        print(splited)
-        return func(map(float, splited[2:-1]))
+        module = importlib.import_module(arg_split[0])
+        func = getattr(module, arg_split[1])
+        return func(map(float, arg_split[2:-1]))
+    except ModuleNotFoundError as e:
+        return "No such module found!"
+    except AttributeError as e:
+        return "No such function found"
     except Exception as e:
-        print("No module found!")
-        raise e
-    return "Error in finding module/function"
+        return f"Error: {e}"
 
 
 def handler(conn, addr):
     with conn:
         print(f"New connection accepted from {addr}")
-        client_datas[addr] = ""
+        clients_data[addr] = ""
         while True:
-            data = conn.recv(99999999)
-
+            data = conn.recv(MAX_BUFFER_SIZE)
             if not data:
                 break
-            client_datas[addr] += data.decode('utf-8')
-            print(client_datas[addr])
-            if client_datas[addr].endswith('fin'):
-                answer = data_calc(client_datas[addr])
+
+            clients_data[addr] += data.decode('utf-8')
+            print(clients_data[addr])
+            if clients_data[addr].endswith('fin'):
+                answer = data_calc(clients_data[addr])
                 conn.sendall(str(answer).encode())
 
-        client_datas.pop(addr)
+        clients_data.pop(addr)
         print(f"Client {addr} disconnected!")
 
 
-pool = concurrent.futures.ThreadPoolExecutor(MAX_WORKERS)
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.bind((HOST, PORT))
-    while True:
-        s.listen()
-        conn, addr = s.accept()
-        t=pool.submit(handler, conn, addr)
+if __name__ == '__main__':
+    pool = concurrent.futures.ThreadPoolExecutor(MAX_WORKERS)
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((HOST, PORT))
+        while True:
+            s.listen()
+            connection, address = s.accept()
+            pool.submit(handler, connection, address)
