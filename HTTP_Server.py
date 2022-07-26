@@ -1,10 +1,12 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
-from os import listdir,getcwd
-
+from os import listdir, getcwd
 from os.path import isfile, join, isdir
 
-dirname = getcwd()
+ADDRESS = 'localhost'
+PORT = 10000
+current_directory = getcwd()
+
 
 class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -14,17 +16,16 @@ class MyHandler(BaseHTTPRequestHandler):
         self.end_headers()
         # send the body of the response
         parsed = urlparse(self.path)
-        query_string = parsed.query
-        path = parsed.path
-        true_path = join(dirname, path[1:])
-        print(path[1:])
-        self.wfile.write(true_path.encode())
-        onlyfiles = [f for f in listdir(true_path) if isfile(join(true_path, f))]
-        onlydirs = [f for f in listdir(true_path) if isdir(join(true_path, f))]
-        result=b"RESULT FOR : "+true_path.encode()
+        relative_path = parsed.path[1:]
+        absolute_path = join(current_directory, relative_path)
+        print(relative_path)
+        all_items = listdir(absolute_path)
+        onlyfiles = [f for f in all_items if isfile(join(absolute_path, f))]
+        onlydirs = [f for f in all_items if isdir(join(absolute_path, f))]
+        result = b"RESULT FOR : " + absolute_path.encode()
         result += b"\nFILES:\n" + "\n".join(onlyfiles).encode() + b"\nDIRS:\n" + "\n".join(onlydirs).encode()
         self.wfile.write(result)
 
 
-httpd = HTTPServer(('localhost', 10000), MyHandler)
+httpd = HTTPServer((ADDRESS, PORT), MyHandler)
 httpd.serve_forever()
